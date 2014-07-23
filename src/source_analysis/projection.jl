@@ -1,5 +1,5 @@
 
-function project(s::ASSR, l::leadfield, idx::Int; verbose::Bool=true)
+function project(s::ASSR, l::leadfield, idx::Int)
 
     #
     # This uses the source model from Van Veen et al '97
@@ -11,7 +11,7 @@ function project(s::ASSR, l::leadfield, idx::Int; verbose::Bool=true)
     #      x       =    H      *    m             m   =   H ^-1 = L   *      x
     #
 
-    if verbose; println("Projecting from ASSR to source $idx"); end
+    info("Projecting from ASSR to source $idx")
 
     # Sanity checks
     if size(s.data,2) != size(l.L,3); error("Leadfield and data do not match"); end

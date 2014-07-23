@@ -8,7 +8,7 @@
 #######################################
 
 
-function beamformer_lcmv(x::Array, n::Array, H::Array; verbose::Bool=false, debug::Bool=false)
+function beamformer_lcmv(x::Array, n::Array, H::Array; progress::Bool=false)
     # LCMV beamformer as described in Van Veen et al '97
     #
     # Input:    x = N x M matrix     = M sample measurements on N electrodes
@@ -42,10 +42,10 @@ function beamformer_lcmv(x::Array, n::Array, H::Array; verbose::Bool=false, debu
     if any(isnan(Q)); error("Their is a nan in your noise data"); end
 
     # Scan each location
-    if verbose; p = Progress(L, 1, "  Scanning... ", 50); end
+    if progress; p = Progress(L, 1, "  Scanning... ", 50); end
     for location = 1:L
         V[location], N[location], NAI[location] = beamformer_lcmv_actual(C_x, squeeze(H[location,:,:], 1)', Q, debug=debug)
-        if verbose; next!(p); end
+        if progress; next!(p); end
     end
 
     return V, N, NAI
