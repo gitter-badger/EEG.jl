@@ -8,7 +8,7 @@
 #######################################
 
 
-function beamformer_lcmv(x::Array, n::Array, H::Array; progress::Bool=false)
+function beamformer_lcmv(x::Array, n::Array, H::Array; progress::Bool=false, checks::Bool=false)
     # LCMV beamformer as described in Van Veen et al '97
     #
     # Input:    x = N x M matrix     = M sample measurements on N electrodes
@@ -22,6 +22,8 @@ function beamformer_lcmv(x::Array, n::Array, H::Array; progress::Bool=false)
     M = size(x)[2]      # Samples
     L = size(H)[1]      # Locations
 
+    info("LCMV beamformer using $M samples on $N sensors for $L sources")
+
     # Some sanity checks on the input
     if size(H)[3] != N; error("Leadfield and data dont match"); end
     if size(H)[2] != 3; error("Leadfield dimension is incorrect"); end
@@ -33,9 +35,9 @@ function beamformer_lcmv(x::Array, n::Array, H::Array; progress::Bool=false)
     Q   = cov(n[:, round(linspace(2, size(n)[2]-1, 4*N))]')
 
     # Space to save results
-    V   = Array(Float64, (L,1))         # Variance
-    N   = Array(Float64, (L,1))         # Noise
-    NAI = Array(Float64, (L,1))         # Neural Activity Index
+    Variance  = Array(Float64, (L,1))         # Variance
+    Noise     = Array(Float64, (L,1))         # Noise
+    NAI       = Array(Float64, (L,1))         # Neural Activity Index
 
     # More checks
     if any(isnan(C_x)); error("Their is a nan in your signal data"); end
@@ -43,19 +45,19 @@ function beamformer_lcmv(x::Array, n::Array, H::Array; progress::Bool=false)
 
     # Scan each location
     if progress; p = Progress(L, 1, "  Scanning... ", 50); end
-    for location = 1:L
-        V[location], N[location], NAI[location] = beamformer_lcmv_actual(C_x, squeeze(H[location,:,:], 1)', Q, debug=debug)
+    for l = 1:L
+        Variance[l], Noise[l], NAI[l] = beamformer_lcmv_actual(C_x, squeeze(H[l,:,:], 1)', Q, N=N, checks=checks)
         if progress; next!(p); end
     end
 
-    return V, N, NAI
+    return Variance, Noise, NAI
 end
 
 
-function beamformer_lcmv_actual(C_x::Array, H::Array, Q::Array; N=64, debug::Bool=false)
+function beamformer_lcmv_actual(C_x::Array, H::Array, Q::Array; N=64, checks::Bool=false)
 
-    if debug
-        if size(H)[1] != N; error("Leadfield and data dont match"); end
+    if checks
+        if size(H)[1] != N; error("Leadfield = $(size(H)[1]) and data = $(N) dont match"); end
         if size(H)[2] != 3; error("Leadfield dimension is incorrect"); end
         if size(C_x)[1] != N; error("Covariance size is incorrect"); end
         if size(C_x)[2] != N; error("Covariance size is incorrect"); end
