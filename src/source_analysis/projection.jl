@@ -1,5 +1,5 @@
 
-function project(s::ASSR, l::leadfield, idx::Int)
+function project(s::ASSR, l, idx::Int)
 
     #
     # This uses the source model from Van Veen et al '97
