@@ -15,7 +15,7 @@ function project(s::ASSR, l, idx::Int)
 
     # Sanity checks
     if size(s.data,2) != size(l.L,3); error("Leadfield and data do not match"); end
-    if s.header["chanLabels"] != l.sensors; error("Sensors do not match"); end
+    if s.channel_names != l.sensors; error("Sensors do not match"); end
 
     squeeze(l.L[idx, :, :],1) * s.data'
 end
