@@ -38,9 +38,8 @@ function beamformer_type4(B::Array, E::Array, L::Array; progress::Bool=true, n::
     debug("Leadfield. Dipoles $P")
 
     # Calculate the n'th order covariance matrix
-    # TODO actually calculate the n'th order
-    inv_C_n = inv(cov(B))
-    inv_E_n = inv(cov(E))
+    inv_C_n = _higher_order_cov(B, n)
+    inv_E_n = _higher_order_cov(E, n)
 
     if progress; p = Progress(P, 1, "  Scanning... ", 50); end
     for p = 1:P
@@ -63,6 +62,13 @@ function _actual_beamformer_type4(inv_C_n, inv_E_n, L)
     z = inv(lz' * inv_C_n * lz) / inv(lz' * inv_E_n * lz)
 
     x + y + z
+end
+
+function _higher_order_cov(X, n)
+    for i = 1:n
+        X = cov(X)
+    end
+    return X
 end
 
 
