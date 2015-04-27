@@ -1,6 +1,3 @@
-using ProgressMeter
-
-
 #######################################
 #
 # Type 4 Beamformer
