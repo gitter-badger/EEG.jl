@@ -7,13 +7,13 @@
 @doc md"""
 Type 4 beamformer as described in Huang et al 2004.
 
-### Input
+#### Input
 
 * Array of data to be beamformed. Channels x Samples
 * Array of noise to be used. Channels x Samples
 * Matrix of leadfield values. Dipole x 3 x Channels
 
-### Optional arguments
+#### Optional arguments
 
 * progress: display progress bar for analysis
 * n: order of covariance matrix to calculate
