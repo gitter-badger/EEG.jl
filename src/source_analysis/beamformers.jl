@@ -94,7 +94,7 @@ function beamformer_lcmv(x::Array, n::Array, H::Array; progress::Bool=false, che
     M = size(x)[2]      # Samples
     L = size(H)[1]      # Locations
 
-    info("LCMV beamformer using $M samples on $N sensors for $L sources")
+    Logging.info("LCMV beamformer using $M samples on $N sensors for $L sources")
 
     # Some sanity checks on the input
     if size(H)[3] != N; error("Leadfield and data dont match"); end
