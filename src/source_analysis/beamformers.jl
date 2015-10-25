@@ -103,8 +103,8 @@ function beamformer_lcmv(x::Array, n::Array, H::Array; progress::Bool=false, che
     if any(isnan(x)); error("Their is a nan in your input x data"); end
 
     # Covariance matrices sampled at 4 times more locations than sensors
-    C_x = cov(x[:, round(linspace(2, M-1, 4*N))]')
-    Q   = cov(n[:, round(linspace(2, size(n)[2]-1, 4*N))]')
+    C_x = cov(x[:, round(Int, linspace(2, M-1, 4*N))]')
+    Q   = cov(n[:, round(Int, linspace(2, size(n)[2]-1, 4*N))]')
 
     # Space to save results
     Variance  = Array(Float64, (L,1))         # Variance
