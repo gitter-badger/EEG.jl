@@ -11,7 +11,7 @@ using ProgressMeter
 #######################################
 
 
-function beamformer_lcmv(x::Array, n::Array, H::Array; progress::Bool=false, checks::Bool=false)
+function beamformer_lcmv{T <: AbstractFloat}(x::Array{T, 2}, n::Array{T, 2}, H::Array{T, 3}; progress::Bool=false, checks::Bool=false)
     # LCMV beamformer as described in Van Veen et al '97
     #
     # Input:    x = N x M matrix     = M sample measurements on N electrodes
@@ -57,7 +57,7 @@ function beamformer_lcmv(x::Array, n::Array, H::Array; progress::Bool=false, che
 end
 
 
-function beamformer_lcmv_actual(C_x::Array, H::Array, Q::Array; N=64, checks::Bool=false)
+function beamformer_lcmv_actual{T <: AbstractFloat}(C_x::Array{T, 2}, H::Array{T, 2}, Q::Array{T, 2}; N=64, checks::Bool=false)
 
     if checks
         if size(H, 1) != N; error("Leadfield = $(size(H, 1)) and data = $(N) dont match"); end
