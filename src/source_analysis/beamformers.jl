@@ -11,7 +11,7 @@ using ProgressMeter
 #######################################
 
 
-function beamformer_lcmv{T <: AbstractFloat}(x::Array{T, 2}, n::Array{T, 2}, H::Array{T, 3}; progress::Bool=false, checks::Bool=false)
+function beamformer_lcmv(x::Array{AbstractFloat, 2}, n::Array{AbstractFloat, 2}, H::Array{AbstractFloat, 3}; progress::Bool=false, checks::Bool=false)
     # LCMV beamformer as described in Van Veen et al '97
     #
     # Input:    x = N x M matrix     = M sample measurements on N electrodes
