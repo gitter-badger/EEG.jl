@@ -18,7 +18,7 @@ using ProgressMeter
     #           H = L x 3 x N matrix = Forward head model.   !! Different to paper !!
 
     # This function sets everything up and checks data before passing to efficient actual calculation
-function beamformer_lcmv{A <: AbstractFloat, B <: AbstractFloat, C <: AbstractFloat, }(x::Array{A, 2}, n::Array{B, 2}, H::Array{C, 3}; progress::Bool=false, checks::Bool=false)
+function beamformer_lcmv{A <: AbstractFloat, B <: AbstractFloat, C <: AbstractFloat}(x::Array{A, 2}, n::Array{B, 2}, H::Array{C, 3}; progress::Bool=false, checks::Bool=false)
 
     # Constants
     N = size(x, 1)   # Sensors
@@ -57,7 +57,7 @@ function beamformer_lcmv{A <: AbstractFloat, B <: AbstractFloat, C <: AbstractFl
 end
 
 
-function beamformer_lcmv_actual{T <: AbstractFloat}(C_x::Array{T, 2}, H::Array{T, 2}, Q::Array{T, 2}; N=64, checks::Bool=false)
+function beamformer_lcmv_actual{A <: AbstractFloat, B <: AbstractFloat, C <: AbstractFloat}(C_x::Array{A, 2}, H::Array{B, 2}, Q::Array{C, 2}; N=64, checks::Bool=false)
 
     if checks
         if size(H, 1) != N; error("Leadfield = $(size(H, 1)) and data = $(N) dont match"); end
