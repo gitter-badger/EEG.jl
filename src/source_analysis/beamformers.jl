@@ -11,7 +11,6 @@ using ProgressMeter
 #######################################
 
 
-function beamformer_lcmv(x::Array{AbstractFloat, 2}, n::Array{AbstractFloat, 2}, H::Array{AbstractFloat, 3}; progress::Bool=false, checks::Bool=false)
     # LCMV beamformer as described in Van Veen et al '97
     #
     # Input:    x = N x M matrix     = M sample measurements on N electrodes
@@ -19,6 +18,7 @@ function beamformer_lcmv(x::Array{AbstractFloat, 2}, n::Array{AbstractFloat, 2},
     #           H = L x 3 x N matrix = Forward head model.   !! Different to paper !!
 
     # This function sets everything up and checks data before passing to efficient actual calculation
+function beamformer_lcmv{A <: AbstractFloat, B <: AbstractFloat, C <: AbstractFloat, }(x::Array{A, 2}, n::Array{B, 2}, H::Array{C, 3}; progress::Bool=false, checks::Bool=false)
 
     # Constants
     N = size(x, 1)   # Sensors
