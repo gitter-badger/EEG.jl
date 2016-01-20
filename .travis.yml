@@ -12,7 +12,8 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"                                 # Required for graphics
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   - sudo pip install --upgrade pip
-  - sudo pip install mne
+  - pip install numpy --user
+  - pip install mne --user
 script:
   - julia --check-bounds=yes -e 'Pkg.clone(pwd()); Pkg.build("EEG"); Pkg.test("EEG"; coverage=true)'
 after_success:
