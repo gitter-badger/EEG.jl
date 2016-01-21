@@ -114,6 +114,7 @@ export # Helper functions
        find_location,
        project,
        euclidean,
+       beamformer_lcmv_cpsd,
        # Plotting
        plot,
        oplot,
