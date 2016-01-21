@@ -1,25 +1,21 @@
 using ProgressMeter
 
-
-#######################################
-#
-# LCMV Beamformer
-#
-# Localization of brain electrical activity via linearly constrained minimum variance spatial filtering
-# Van Veen, B. D., van Drongelen, W., Yuchtman, M., & Suzuki, A. (1997)
-#
-#######################################
+"""
+Linearly constrained minimum variance (LCMV) beamformer as described in Van Veen et al '97
 
 
-    # LCMV beamformer as described in Van Veen et al '97
-    #
-    # Input:    x = N x M matrix     = M sample measurements on N electrodes
-    #           n = N x M matrix     = M sample measurements of noise on N electrodes
-    #           H = L x 3 x N matrix = Forward head model.   !! Different to paper !!
+### Literature
 
-    # This function sets everything up and checks data before passing to efficient actual calculation
-function beamformer_lcmv{A <: AbstractFloat, B <: AbstractFloat, C <: AbstractFloat}(x::Array{A, 2}, n::Array{B, 2}, H::Array{C, 3}; progress::Bool=false, checks::Bool=false)
+Localization of brain electrical activity via linearly constrained minimum variance spatial filtering  
+Van Veen, B. D., van Drongelen, W., Yuchtman, M., & Suzuki, A. (1997)
 
+### Input
+
+* x = N x M matrix     = M sample measurements on N electrodes
+* n = N x M matrix     = M sample measurements of noise on N electrodes
+* H = L x 3 x N matrix = Forward head model.   !! Different to paper !!
+
+"""
     # Constants
     N = size(x, 1)   # Sensors
     M = size(x, 2)   # Samples
