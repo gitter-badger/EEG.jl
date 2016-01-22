@@ -45,7 +45,7 @@ end
 
 
 function beamformer_lcmv_cpsd{T <: AbstractFloat}(C::Array{T, 2}, Q::Array{T, 2}, H::Array{T, 3};
-    progress::Bool=true, checks::Bool=true)
+                              progress::Bool=true, checks::Bool=true)
 
     N = size(C, 1)   # Sensors
     L = size(H, 1)   # Locations
@@ -75,7 +75,8 @@ function beamformer_lcmv_cpsd{T <: AbstractFloat}(C::Array{T, 2}, Q::Array{T, 2}
 end
 
 
-function beamformer_lcmv_actual{A <: AbstractFloat}(invC::Array{A, 2}, H::Array{A, 2}, invQ::Array{A, 2}; checks::Bool=false)
+function beamformer_lcmv_actual{A <: AbstractFloat}(invC::Array{A, 2}, H::Array{A, 2}, invQ::Array{A, 2};
+                                checks::Bool=false)
 
     if checks
         if size(H, 1) != size(invC, 1); error("Leadfield $(size(H, 1)) and data $(size(invC, 1)) dont match"); end
