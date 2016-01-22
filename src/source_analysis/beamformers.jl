@@ -16,8 +16,8 @@ Van Veen, B. D., van Drongelen, W., Yuchtman, M., & Suzuki, A. (1997)
 * H = L x 3 x N matrix = Forward head model.   !! Different to paper !!
 
 """
-function beamformer_lcmv{A <: AbstractFloat, B <: AbstractFloat, C <: AbstractFloat}(x::Array{A, 2}, n::Array{B, 2},
-                         H::Array{C, 3}; progress::Bool=false, checks::Bool=false)
+function beamformer_lcmv{A <: AbstractFloat, B <: AbstractFloat, D <: AbstractFloat}(x::Array{A, 2}, n::Array{B, 2},
+                         H::Array{D, 3}; progress::Bool=false, checks::Bool=false)
 
     x = convert(typeof(n), x)
 
@@ -36,15 +36,15 @@ function beamformer_lcmv{A <: AbstractFloat, B <: AbstractFloat, C <: AbstractFl
     Logging.debug("Sanity checks passed")
 
     # Covariance matrices sampled at 4 times more locations than sensors
-    C_x = cov(x')
-    Q   = cov(n')
+    C = cov(x')
+    Q = cov(n')
     Logging.debug("Covariance matrices calculated and of size $(size(Q))")
 
-    beamformer_lcmv_cpsd(C_x, Q, H, progress = progress, checks = checks)
+    beamformer_lcmv_cpsd(C, Q, H, progress = progress, checks = checks)
 end
 
 
-function beamformer_lcmv_cpsd{T <: AbstractFloat, B <: AbstractFloat}(C::Array{T}, Q::Array{T}, H::Array{B, 3};
+function beamformer_lcmv_cpsd{T <: AbstractFloat}(C::Array{T, 2}, Q::Array{T, 2}, H::Array{T, 3};
     progress::Bool=true, checks::Bool=true)
 
     N = size(C, 1)   # Sensors
@@ -60,11 +60,14 @@ function beamformer_lcmv_cpsd{T <: AbstractFloat, B <: AbstractFloat}(C::Array{T
     if any(isnan(C)); error("Their is a nan in your signal data"); end
     if any(isnan(Q)); error("Their is a nan in your noise data"); end
 
+    invC = pinv(C)
+    invQ = pinv(Q)
+
     # Scan each location
     Logging.debug("Beamformer scan started")
     if progress; p = Progress(L, 1, "  Scanning... ", 50); end
     for l = 1:L
-        Variance[l], Noise[l], NAI[l] = beamformer_lcmv_actual(C, squeeze(H[l,:,:], 1)', Q, N=N, checks=checks)
+        Variance[l], Noise[l], NAI[l] = beamformer_lcmv_actual(invC, squeeze(H[l,:,:], 1)', invQ, N=N, checks=checks)
         if progress; next!(p); end
     end
 
@@ -72,24 +75,24 @@ function beamformer_lcmv_cpsd{T <: AbstractFloat, B <: AbstractFloat}(C::Array{T
 end
 
 
-function beamformer_lcmv_actual{A <: AbstractFloat, B <: AbstractFloat, C <: AbstractFloat}(C_x::Array{A, 2}, H::Array{B, 2}, Q::Array{C, 2}; N=64, checks::Bool=false)
+function beamformer_lcmv_actual{A <: AbstractFloat}(invC::Array{A, 2}, H::Array{A, 2}, invQ::Array{A, 2}; N=64, checks::Bool=false)
 
     if checks
         if size(H, 1) != N; error("Leadfield = $(size(H, 1)) and data = $(N) dont match"); end
         if size(H, 2) != 3; error("Leadfield dimension is incorrect"); end
-        if size(C_x, 1) != N; error("Covariance size is incorrect"); end
-        if size(C_x, 2) != N; error("Covariance size is incorrect"); end
-        if size(Q) != size(C_x); error("Covariance matrices dont match"); end
+        if size(C, 1) != N; error("Covariance size is incorrect"); end
+        if size(C, 2) != N; error("Covariance size is incorrect"); end
+        if size(Q) != size(C); error("Covariance matrices dont match"); end
     end
 
     # Strength of source
-    V_q = trace( inv( H' * pinv(C_x) * H ) )
+    V_q = trace( inv(H' * invC * H ) )   # Eqn XX: trace(3x3)
 
     # Noise strength
-    N_q = trace( inv(H' * inv(Q) * H) )
+    N_q = trace( inv(H' * invQ * H) )    # Eqn XX: trace(3x3)
 
     # Neural activity index
-    NAI = V_q / N_q
+    NAI = V_q / N_q                      # Eqn 27
 
     return V_q, N_q, NAI
 end
