@@ -67,7 +67,7 @@ function beamformer_lcmv_cpsd{T <: AbstractFloat}(C::Array{T, 2}, Q::Array{T, 2}
     Logging.debug("Beamformer scan started")
     if progress; p = Progress(L, 1, "  Scanning... ", 50); end
     for l = 1:L
-        Variance[l], Noise[l], NAI[l] = beamformer_lcmv_actual(invC, squeeze(H[l,:,:], 1)', invQ, N=N, checks=checks)
+        Variance[l], Noise[l], NAI[l] = beamformer_lcmv_actual(invC, squeeze(H[l,:,:], 1)', invQ, checks=checks)
         if progress; next!(p); end
     end
 
@@ -75,14 +75,12 @@ function beamformer_lcmv_cpsd{T <: AbstractFloat}(C::Array{T, 2}, Q::Array{T, 2}
 end
 
 
-function beamformer_lcmv_actual{A <: AbstractFloat}(invC::Array{A, 2}, H::Array{A, 2}, invQ::Array{A, 2}; N=64, checks::Bool=false)
+function beamformer_lcmv_actual{A <: AbstractFloat}(invC::Array{A, 2}, H::Array{A, 2}, invQ::Array{A, 2}; checks::Bool=false)
 
     if checks
-        if size(H, 1) != N; error("Leadfield = $(size(H, 1)) and data = $(N) dont match"); end
+        if size(H, 1) != size(invC, 1); error("Leadfield $(size(H, 1)) and data $(size(invC, 1)) dont match"); end
+        if size(invQ) != size(invC); error("Signal and noise matrices dont match $(size(invQ)) != $(size(invC))"); end
         if size(H, 2) != 3; error("Leadfield dimension is incorrect $(size(H, 2)) != 3"); end
-        if size(invC, 1) != N; error("Covariance size is incorrect $(size(invC, 1)) != $N"); end
-        if size(invC, 2) != N; error("Covariance size is incorrect $(size(invC, 2)) != $N"); end
-        if size(invQ) != size(invC); error("Covariance matrices dont match $(size(invQ)) != $(size(invC))"); end
     end
 
     # Strength of source
