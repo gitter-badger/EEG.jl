@@ -19,7 +19,17 @@ Van Veen, B. D., van Drongelen, W., Yuchtman, M., & Suzuki, A. (1997)
 function beamformer_lcmv{A <: AbstractFloat, B <: AbstractFloat, D <: AbstractFloat}(x::Array{A, 2}, n::Array{B, 2},
                          H::Array{D, 3}; progress::Bool=false, checks::Bool=false)
 
-    x = convert(typeof(n), x)
+    # Match types to greatest precision for efficient typing in beamformer loop
+    if precision(x[1]) > precision(n[1])
+        n = convert(typeof(x), n)
+    elseif precision(n[1]) > precision(x[1])
+        x = convert(typeof(n), x)
+    end
+    if precision(H[1]) > precision(x[1])
+        x = convert(Array{typeof(H[1])}, x)
+    elseif precision(x[1]) > precision(H[1])
+        H = convert(Array{typeof(x[1])}, H)
+    end
 
     # Constants
     N = size(x, 1)   # Sensors
@@ -36,7 +46,7 @@ function beamformer_lcmv{A <: AbstractFloat, B <: AbstractFloat, D <: AbstractFl
     Logging.debug("Sanity checks passed")
 
     # Covariance matrices sampled at 4 times more locations than sensors
-    C = cov(x')
+    C = cov(x')    # TODO Replace with cross power spectral density at frequency of interest
     Q = cov(n')
     Logging.debug("Covariance matrices calculated and of size $(size(Q))")
 
