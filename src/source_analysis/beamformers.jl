@@ -86,10 +86,10 @@ function beamformer_lcmv_actual{A <: AbstractFloat}(invC::Array{A, 2}, H::Array{
     end
 
     # Strength of source
-    V_q = trace( inv(H' * invC * H ) )   # Eqn XX: trace(3x3)
+    V_q = trace( inv(H' * invC * H ) )   # Eqn 24: trace(3x3)
 
     # Noise strength
-    N_q = trace( inv(H' * invQ * H) )    # Eqn XX: trace(3x3)
+    N_q = trace( inv(H' * invQ * H) )    # Eqn 26: trace(3x3)
 
     # Neural activity index
     NAI = V_q / N_q                      # Eqn 27
