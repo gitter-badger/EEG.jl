@@ -79,10 +79,10 @@ function beamformer_lcmv_actual{A <: AbstractFloat}(invC::Array{A, 2}, H::Array{
 
     if checks
         if size(H, 1) != N; error("Leadfield = $(size(H, 1)) and data = $(N) dont match"); end
-        if size(H, 2) != 3; error("Leadfield dimension is incorrect"); end
-        if size(C, 1) != N; error("Covariance size is incorrect"); end
-        if size(C, 2) != N; error("Covariance size is incorrect"); end
-        if size(Q) != size(C); error("Covariance matrices dont match"); end
+        if size(H, 2) != 3; error("Leadfield dimension is incorrect $(size(H, 2)) != 3"); end
+        if size(invC, 1) != N; error("Covariance size is incorrect $(size(invC, 1)) != $N"); end
+        if size(invC, 2) != N; error("Covariance size is incorrect $(size(invC, 2)) != $N"); end
+        if size(invQ) != size(invC); error("Covariance matrices dont match $(size(invQ)) != $(size(invC))"); end
     end
 
     # Strength of source
