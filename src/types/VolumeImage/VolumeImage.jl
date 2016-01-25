@@ -19,10 +19,10 @@ The following standard names are used when saving data to the info dictionary.
 type VolumeImage
     data::Array{AbstractFloat}
     units::AbstractString
-    x::Array{SIUnits.SIQuantity{AbstractFloat,1,0,0,0,0,0,0,0,0}, 1}  #(m)
-    y::Array{SIUnits.SIQuantity{AbstractFloat,1,0,0,0,0,0,0,0,0}, 1}  #(m)
-    z::Array{SIUnits.SIQuantity{AbstractFloat,1,0,0,0,0,0,0,0,0}, 1}  #(m)
-    t::Array{SIUnits.SIQuantity{AbstractFloat,0,0,1,0,0,0,0,0,0}, 1}  #(s)
+    x::Array{quantity(AbstractFloat, Meter), 1}
+    y::Array{quantity(AbstractFloat, Meter), 1}
+    z::Array{quantity(AbstractFloat, Meter), 1}
+    t::Array{quantity(AbstractFloat, Second), 1}
     method::AbstractString
     info::Dict
     coord_system::AbstractString
