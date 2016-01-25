@@ -17,7 +17,7 @@ The following standard names are used when saving data to the info dictionary.
 
 """ ->
 type VolumeImage
-    data::Array{AbstractFloat}
+    data::Array{AbstractFloat, 4}
     units::AbstractString
     x::Array{quantity(AbstractFloat, Meter), 1}
     y::Array{quantity(AbstractFloat, Meter), 1}
