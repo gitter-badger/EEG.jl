@@ -26,6 +26,18 @@ type VolumeImage
     method::AbstractString
     info::Dict
     coord_system::AbstractString
+
+    function VolumeImage{F<:AbstractFloat, S<:AbstractString}(data::Array{F, 4}, units::S,
+                         x::Vector{F}, y::Vector{F}, z::Vector{F}, t::Vector{F},
+                         method::S, info::Dict, coord_system::S)
+
+        @assert size(data, 1) == length(x)
+        @assert size(data, 2) == length(y)
+        @assert size(data, 3) == length(z)
+        @assert size(data, 4) == length(t)
+
+        new(data, units, x, y, z, t, method, info, coord_system)
+    end
 end
 
 
