@@ -38,6 +38,18 @@ type VolumeImage
 
         new(data, units, x, y, z, t, method, info, coord_system)
     end
+    function VolumeImage{F<:AbstractFloat, S<:AbstractString, Met<:quantity(AbstractFloat, Meter),
+                         Sec<:quantity(AbstractFloat, Second)}(data::Array{F, 4}, units::S,
+                         x::Vector{Met}, y::Vector{Met}, z::Vector{Met}, t::Vector{Sec},
+                         method::S, info::Dict, coord_system::S)
+
+        @assert size(data, 1) == length(x)
+        @assert size(data, 2) == length(y)
+        @assert size(data, 3) == length(z)
+        @assert size(data, 4) == length(t)
+
+        new(data, units, x, y, z, t, method, info, coord_system)
+    end
 end
 
 

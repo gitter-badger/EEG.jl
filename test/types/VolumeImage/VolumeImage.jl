@@ -1,3 +1,5 @@
+using Base.Test
+using EEG
 
 fname = joinpath(dirname(@__FILE__), "../../data", "test-4d.dat")
 
@@ -36,6 +38,11 @@ t2 = mean(t2)
 #= @test_throws ErrorException t + t2 =#
 
 
+#
+# Create image with SIUnits already
+#
+
+n = VolumeImage(t.data, t.units, t.x, t.y, t.z, t.t, t.method, t.info, t.coord_system)
 
 
 println()
