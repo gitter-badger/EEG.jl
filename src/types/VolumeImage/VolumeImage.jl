@@ -38,6 +38,7 @@ type VolumeImage
 
         new(data, units, x, y, z, t, method, info, coord_system)
     end
+
     function VolumeImage{F<:AbstractFloat, S<:AbstractString, Met<:quantity(AbstractFloat, Meter),
                          Sec<:quantity(AbstractFloat, Second)}(data::Array{F, 4}, units::S,
                          x::Vector{Met}, y::Vector{Met}, z::Vector{Met}, t::Vector{Sec},
@@ -50,6 +51,32 @@ type VolumeImage
 
         new(data, units, x, y, z, t, method, info, coord_system)
     end
+
+    function VolumeImage{F<:AbstractFloat, S<:AbstractString}(data::Vector{F}, units::S,
+                         x::Vector{F}, y::Vector{F}, z::Vector{F}, t::Vector{F},
+                         method::S, info::Dict, coord_system::S)
+
+        @assert length(x) * length(t) == length(data)
+        @assert length(y) * length(t) == length(data)
+        @assert length(z) * length(t) == length(data)
+
+        newX = sort(unique(x))
+        newY = sort(unique(y))
+        newZ = sort(unique(z))
+        newT = sort(unique(t))
+
+        L = zeros(typeof(data[1]), length(newX), length(newY), length(newZ), length(newT))
+
+        for idx in 1:length(data)
+            idxX = findin(newX, x[idx])[1]
+            idxY = findin(newY, y[idx])[1]
+            idxZ = findin(newZ, z[idx])[1]
+            L[idxX, idxY, idxZ, 1] = data[idx]
+        end
+
+        new(L, units, x, y, z, t, method, info, coord_system)
+    end
+
 end
 
 
