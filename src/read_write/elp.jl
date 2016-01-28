@@ -28,9 +28,14 @@ function read_elp(fname::AbstractString)
     # Read file
     df = readtable(fname, header = false, separator = ' ')
 
+    phi = df[:x2]
+    theta = df[:x3]
+    r = 90.0
+
     # Save locations
-    elec.x = df[:x2]  #TODO: Fix elp locations to 3d
-    elec.y = df[:x3]
+    elec.x = r .* sin(phi*(pi/180)) .* cos(theta*(pi/180))
+    elec.y = r .* sin(phi*(pi/180)) .* sin(theta*(pi/180)) - 17.5
+    elec.z = r .* cos(phi*(pi/180))
 
     # Convert label to ascii and remove '
     labels = df[:x1]
