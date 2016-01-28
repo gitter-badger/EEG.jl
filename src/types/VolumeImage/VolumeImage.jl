@@ -74,7 +74,7 @@ type VolumeImage
             L[idxX, idxY, idxZ, 1] = data[idx]
         end
 
-        new(L, units, x, y, z, t, method, info, coord_system)
+        new(L, units, newX, newY, newZ, newT, method, info, coord_system)
     end
 
 end
