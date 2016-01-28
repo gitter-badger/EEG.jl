@@ -29,7 +29,7 @@ NAI = vec(NAI)
 
 vi = VolumeImage(NAI, "nA/cm^3", x, y, z, t, "LCMV", Dict(), "Talairach")
 
-NAI = reshape(NAI, (10, 9, 8, 1))
+NAI = reshape(NAI, (5, 5, 5, 1))
 
 write_dat(joinpath(dirname(@__FILE__), "..", "data", "tmp", "SA.dat"), 1:size(NAI,1), 1:size(NAI,2), 1:size(NAI,3), NAI, 1:size(NAI,4))
 
