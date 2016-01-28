@@ -12,7 +12,7 @@ x = copy(a.data')
 
 n = randn(size(x))
 
-H = randn(10*9*8, 3, 6)
+H = randn(5*5*5, 3, 6)
 
 V, N, NAI = beamformer_lcmv(x, n, H, checks=true, progress=true)
 
@@ -21,9 +21,9 @@ V, N, NAI = beamformer_lcmv(x, n, H, checks=true, progress=true)
 # Export as volume image
 #
 
-x = collect(1:720.0)
-y = collect(1:720.0)
-z = collect(1:720.0)
+x = repmat(collect(1:5), 25)
+y = repmat(vec(ones(5) * collect(1:5)'), 5)
+z = vec(ones(5*5) * collect(1:5)')
 t = [1.0]
 NAI = vec(NAI)
 
