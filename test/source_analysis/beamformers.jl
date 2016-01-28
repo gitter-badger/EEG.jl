@@ -21,7 +21,7 @@ V, N, NAI = beamformer_lcmv(x, n, H, checks=true, progress=true)
 # Export as volume image
 #
 
-x = repmat(collect(1:5), 25)
+x = repmat(collect(1:5.0), 25)
 y = repmat(vec(ones(5) * collect(1:5)'), 5)
 z = vec(ones(5*5) * collect(1:5)')
 t = [1.0]
