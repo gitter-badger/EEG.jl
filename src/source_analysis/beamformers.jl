@@ -64,29 +64,32 @@ function beamformer_lcmv_cpsd{T <: AbstractFloat}(C::Array{T, 2}, Q::Array{T, 2}
     Variance  = Array(Float64, (L, 1))         # Variance
     Noise     = Array(Float64, (L, 1))         # Noise
     NAI       = Array(Float64, (L, 1))         # Neural Activity Index
-    Logging.debug("Results vairables pre allocated")
+    Logging.debug("Result vairables pre allocated")
 
     # More checks
     if any(isnan(C)); error("Their is a nan in your signal data"); end
     if any(isnan(Q)); error("Their is a nan in your noise data"); end
 
+    # Compute inverse outside loop
     invC = pinv(C)
     invQ = pinv(Q)
 
     # Scan each location
     Logging.debug("Beamformer scan started")
-    if progress; p = Progress(L, 1, "  Scanning... ", 50); end
+    if progress; prog = Progress(L, 1, "  Scanning... ", 50); end
     for l = 1:L
-        Variance[l], Noise[l], NAI[l] = beamformer_lcmv_actual(invC, squeeze(H[l,:,:], 1)', invQ, checks=checks)
-        if progress; next!(p); end
+        Hi = squeeze(H[l,:,:], 1)'
+        Variance[l], Noise[l], NAI[l] = beamformer_lcmv_actual(invC, Hi, invQ, checks=checks)
+        if progress; next!(prog); end
     end
+    Logging.debug("Beamformer scan completed")
 
     return Variance, Noise, NAI
 end
 
 
 function beamformer_lcmv_actual{A <: AbstractFloat}(invC::Array{A, 2}, H::Array{A, 2}, invQ::Array{A, 2};
-                                checks::Bool=false)
+                    checks::Bool=false)
 
     if checks
         if size(H, 1) != size(invC, 1); error("Leadfield $(size(H, 1)) and data $(size(invC, 1)) dont match"); end
@@ -95,13 +98,13 @@ function beamformer_lcmv_actual{A <: AbstractFloat}(invC::Array{A, 2}, H::Array{
     end
 
     # Strength of source
-    V_q = trace( inv(H' * invC * H ) )   # Eqn 24: trace(3x3)
+    V_q = trace( pinv(H' * invC * H)[1:3, 1:3])   # Eqn 24: trace(3x3)
 
     # Noise strength
-    N_q = trace( inv(H' * invQ * H) )    # Eqn 26: trace(3x3)
+    N_q = trace( pinv(H' * invQ * H)[1:3, 1:3])   # Eqn 26: trace(3x3)
 
     # Neural activity index
-    NAI = V_q / N_q                      # Eqn 27
+    NAI = V_q / N_q                               # Eqn 27
 
     return V_q, N_q, NAI
 end
