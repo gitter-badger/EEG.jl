@@ -18,7 +18,8 @@ using Logging,  # For user feedback
       Gadfly,
       Images,
       BDF,
-      MAT
+      MAT,
+      PyCall
 
 import Winston: oplot, plot
 
@@ -114,6 +115,7 @@ export # Helper functions
        find_location,
        project,
        euclidean,
+       cross_power_spectral_density,
        beamformer_lcmv_cpsd,
        # Plotting
        plot,
