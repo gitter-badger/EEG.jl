@@ -12,7 +12,7 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"                                 # Required for graphics
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   - sudo pip install --upgrade pip
-  - apt-get install -y libblas-dev liblapack-dev libatlas-base-dev gfortran
+  - sudo apt-get install -y libblas-dev liblapack-dev libatlas-base-dev gfortran
   - pip install numpy scipy --user
   - pip install mne --user
 script:
