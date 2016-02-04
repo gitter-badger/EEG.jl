@@ -9,7 +9,9 @@ function beamformer_lcmv(s::SSR, n::SSR, l::Leadfield; foi::Real=modulationrate(
         n = extract_epochs(n)
     end
 
-    beamformer_lcmv(s.processing["epochs"], n.processing["epochs"], l.L, l.x, l.y, l.z, fs, foi; kwargs...)
+    V, N, NAI = beamformer_lcmv(s.processing["epochs"], n.processing["epochs"], l.L, l.x, l.y, l.z, fs, foi; kwargs...)
+
+    VolumeImage(vec(NAI), "NAI", l.x, l.y, l.z, [1.0], "LCMV", Dict(), "Talairach")
 end
 
 """
@@ -91,7 +93,8 @@ end
 
 
 function beamformer_lcmv{A <: AbstractFloat}(C::Array{Complex{A}, 2}, Q::Array{Complex{A}, 2}, H::Array{A, 3},
-                              x::Vector{A}, y::Vector{A}, z::Vector{A}, bilateral::Real; reduce_dim::Bool=false, kwargs...)
+                              x::Vector{A}, y::Vector{A}, z::Vector{A}, bilateral::Real;
+                              reduce_dim::Bool=true, subspace::A=0.0, regularisation::A=0.0, kwargs...)
 
     Logging.debug("Computing LCMV beamformer from CPSD data")
 
@@ -102,12 +105,32 @@ function beamformer_lcmv{A <: AbstractFloat}(C::Array{Complex{A}, 2}, Q::Array{C
     Variance  = Array(Float64, (L, 1))         # Variance
     Noise     = Array(Float64, (L, 1))         # Noise
     NAI       = Array(Float64, (L, 1))         # Neural Activity Index
-
     Logging.debug("Result variables pre allocated")
 
+    # TODO before or after subspace?
+    if regularisation > 0
+        C = C + regularisation * eye(C)
+        Q = Q + regularisation * eye(Q)
+    end
+
+    if subspace > 0
+
+        # Create subspace from singular vectors
+        ss, k = retain_svd(real(C), subspace)
+        ss = ss'
+
+        Logging.debug("Subspace constructed of $(size(ss, 1)) components constituting $(100*round(k, 5))% of power")
+
+        # Apply subspace to signal and noise
+        C = ss * C * ss'
+        Q = ss * Q * ss'
+
+        Logging.debug("Subspace projection calculated")
+    end
+
     # Compute inverse outside loop
-    invC = pinv(C) # + 0.01 * eye(C)
-    invQ = pinv(Q) # + 0.01 * eye(C)
+    invC = pinv(C)
+    invQ = pinv(Q)
 
     prog = Progress(L, 1, "  LCMV scan... ", 50)
     Logging.debug("Beamformer scan started")
@@ -128,14 +151,23 @@ function beamformer_lcmv{A <: AbstractFloat}(C::Array{Complex{A}, 2}, Q::Array{C
                 end
             end
             Ls = H[to_supress, :, :]
-
-            # Append bilateral sources to leadfield
             Ls = reshape(permutedims(Ls, [3, 2, 1]), N, size(Ls, 1) * 3)
+
+            # Append bilateral sources to leadfield Dalal et al 2006
             if reduce_dim
-                H_l = hcat(H_l, svdfact(Ls).U[:, 1:6])
+                # Append singular values Dalal eqn 13
+                a, _ = retain_svd(Ls)
+                H_l = hcat(H_l, a)
             else
+                # Append all points Dalal eqn 12
+                # Will be highly singular and computationally expensive
                 H_l = hcat(H_l, Ls)
             end
+        end
+
+        # Apply subspace to leadfield in addition to covariance matrix
+        if subspace > 0
+            H_l = ss * H_l
         end
 
         Variance[l], Noise[l], NAI[l] = beamformer_lcmv(invC, invQ, H_l)
@@ -189,7 +221,7 @@ function cross_spectral_density{T <: AbstractFloat}(epochs::Array{T, 3}, fmin::R
     @pyimport mne as mne
     @pyimport mne.time_frequency as tf
 
-    Logging.debug("Cross power spectral density between $fmin - $fmax")
+    Logging.debug("Cross power spectral density between $fmin - $fmax Hz")
 
     # Convert from EEG.jl to MNE format for epochs
     epochs = permutedims(epochs, [2, 3, 1])                      # Change to trials x channels x samples
@@ -201,4 +233,27 @@ function cross_spectral_density{T <: AbstractFloat}(epochs::Array{T, 3}, fmin::R
     epochs = mne.EpochsArray(epochs, i, events, 0.0, verbose = false)
     csd = tf.compute_epochs_csd(epochs, fmin = fmin, fmax = fmax, verbose = false, fsum = true)
     csd = csd[:data]
+end
+
+
+###############################
+#
+# Retain SVD components
+#
+###############################
+
+"""
+Retain eigenvectors that represent up to `k` percent of power
+"""
+function retain_svd{T <: AbstractFloat}(A::Array{T, 2}, k::T=0.9)
+
+    ss = svdfact(A)
+
+    pw = cumsum(ss.S ./ sum(ss.S))
+
+    keep = maximum(find(pw .< k)) + 1
+
+    ss = ss.U[:, 1:keep]
+
+    return ss, pw[keep]
 end
