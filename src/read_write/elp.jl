@@ -18,8 +18,6 @@ Read elp file
 function read_elp(fname::AbstractString)
     # This does not work yet, need to convert to 3d coord system
 
-    critical("Reading ELPs has not been validated")
-
     info("Reading elp file = $fname")
 
     # Create an empty electrode set
