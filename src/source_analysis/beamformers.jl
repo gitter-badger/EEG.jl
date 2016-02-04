@@ -9,6 +9,8 @@ function beamformer_lcmv(s::SSR, n::SSR, l::Leadfield; foi::Real=modulationrate(
         n = extract_epochs(n)
     end
 
+    l = match_leadfield(l, s)
+
     V, N, NAI = beamformer_lcmv(s.processing["epochs"], n.processing["epochs"], l.L, l.x, l.y, l.z, fs, foi; kwargs...)
 
     VolumeImage(vec(NAI), "NAI", l.x, l.y, l.z, [1.0], "LCMV", Dict(), "Talairach")
