@@ -58,7 +58,7 @@ Biomedical Engineering, IEEE Transactions on, 53(7):1357–1363, 2006.
 function beamformer_lcmv{A <: AbstractFloat}(x::Array{A, 3}, n::Array{A, 3}, H::Array{A, 3},
                          x_loc::Vector{A}, y_loc::Vector{A}, z_loc::Vector{A},
                          fs::Real = 8192, foi::Real = 40.0;
-                         freq_pm::Real = 1.0, bilateral::Real = 0.0, kwargs...)
+                         freq_pm::Real = 1.0, bilateral::Real = 15, kwargs...)
 
     Logging.debug("Starting LCMV beamforming on epoch data")
 
@@ -96,7 +96,7 @@ end
 
 function beamformer_lcmv{A <: AbstractFloat}(C::Array{Complex{A}, 2}, Q::Array{Complex{A}, 2}, H::Array{A, 3},
                               x::Vector{A}, y::Vector{A}, z::Vector{A}, bilateral::Real;
-                              reduce_dim::Bool=true, subspace::A=0.0, regularisation::A=0.0, kwargs...)
+                              reduce_dim::Bool=true, subspace::A=0.999, regularisation::A=0.003, kwargs...)
 
     Logging.debug("Computing LCMV beamformer from CPSD data")
 
@@ -110,9 +110,11 @@ function beamformer_lcmv{A <: AbstractFloat}(C::Array{Complex{A}, 2}, Q::Array{C
     Logging.debug("Result variables pre allocated")
 
     # TODO before or after subspace?
+    # Default as suggested in discussion of Sekihara
     if regularisation > 0
-        C = C + regularisation * eye(C)
-        Q = Q + regularisation * eye(Q)
+        S = svdfact(real(C)).S[1]
+        C = C + regularisation * S * eye(C)
+        Q = Q + regularisation * S * eye(Q)
     end
 
     if subspace > 0
