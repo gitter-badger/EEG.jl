@@ -1,6 +1,6 @@
 using ProgressMeter
 
-function beamformer_lcmv(s::SSR, n::SSR, l::Leadfield; foi::Real=modulationrate(s), fs::Real=samplingrate(s), kwargs...)
+function beamformer_lcmv(s::SSR, n::SSR, l::Leadfield; foi::Real=modulationrate(s), fs::Real=samplingrate(s), n_epochs::Int=30, kwargs...)
 
     if !haskey(s.processing, "epochs")
         s = extract_epochs(s)
@@ -8,6 +8,9 @@ function beamformer_lcmv(s::SSR, n::SSR, l::Leadfield; foi::Real=modulationrate(
     if !haskey(n.processing, "epochs")
         n = extract_epochs(n)
     end
+
+    s.processing["epochs"] = reduce_epochs(s.processing["epochs"], n_epochs)
+    n.processing["epochs"] = reduce_epochs(n.processing["epochs"], n_epochs)
 
     l = match_leadfield(l, s)
 
@@ -260,4 +263,27 @@ function retain_svd{T <: AbstractFloat}(A::Array{T, 2}, k::T=0.9)
     ss = ss.U[:, 1:keep]
 
     return ss, pw[keep]
+end
+
+
+
+
+###############################
+#
+# Average the epochs
+#
+###############################
+
+function reduce_epochs{T <: AbstractFloat}(a::Array{T, 3}, new_num_epochs::Int=30)
+    if new_num_epochs < size(a, 2)
+        ep_per_av = floor(size(a, 2) / new_num_epochs)
+        new = zeros(size(a, 1), new_num_epochs, size(a, 3))
+        for i in 1:new_num_epochs-1
+            new[:, i, :] = mean(a[:, 1+((i-1)*4):4+((i-1)*4), :], 2) 
+        end
+        new[:, new_num_epochs, :] = mean(a[:, 1+((new_num_epochs-1)*4):end, :], 2)
+        return new
+    else
+        return a
+    end
 end
