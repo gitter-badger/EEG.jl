@@ -156,8 +156,8 @@ function beamformer_lcmv{A <: AbstractFloat}(C::Array{Complex{A}, 2}, Q::Array{C
             # Append bilateral sources to leadfield Dalal et al 2006
             if reduce_dim
                 # Append singular values Dalal eqn 13
-                a, _ = retain_svd(Ls)
-                H_l = hcat(H_l, a)
+                # Should we take a constant number of vectors or adaptive? Chosen a constant of 6 for now
+                H_l = hcat(H_l, svdfact(Ls).U[:, 1:6])
             else
                 # Append all points Dalal eqn 12
                 # Will be highly singular and computationally expensive
