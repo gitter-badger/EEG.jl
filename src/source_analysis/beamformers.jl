@@ -1,6 +1,6 @@
 using ProgressMeter
 
-function beamformer_lcmv(s::SSR, n::SSR, l::Leadfield; foi::Real=modulationrate(s), fs::Real=samplingrate(s), n_epochs::Int=30, kwargs...)
+function beamformer_lcmv(s::SSR, n::SSR, l::Leadfield; foi::Real=modulationrate(s), fs::Real=samplingrate(s), n_epochs::Int=0, kwargs...)
 
     if !haskey(s.processing, "epochs")
         s = extract_epochs(s)
@@ -9,8 +9,10 @@ function beamformer_lcmv(s::SSR, n::SSR, l::Leadfield; foi::Real=modulationrate(
         n = extract_epochs(n)
     end
 
-    s.processing["epochs"] = reduce_epochs(s.processing["epochs"], n_epochs)
-    n.processing["epochs"] = reduce_epochs(n.processing["epochs"], n_epochs)
+    if n_epochs > 0
+        s.processing["epochs"] = reduce_epochs(s.processing["epochs"], n_epochs)
+        n.processing["epochs"] = reduce_epochs(n.processing["epochs"], n_epochs)
+    end
 
     l = match_leadfield(l, s)
 
@@ -63,7 +65,7 @@ function beamformer_lcmv{A <: AbstractFloat}(x::Array{A, 3}, n::Array{A, 3}, H::
                          fs::Real = 8192, foi::Real = 40.0;
                          freq_pm::Real = 1.0, bilateral::Real = 15, kwargs...)
 
-    Logging.debug("Starting LCMV beamforming on epoch data")
+    Logging.debug("Starting LCMV beamforming on epoch data of size $(size(x, 1)) x $(size(x, 2)) x $(size(x, 3)) and $(size(n, 1)) x $(size(n, 2)) x $(size(n, 3))")
 
     # Constants
     M = size(x, 1)   # Samples
