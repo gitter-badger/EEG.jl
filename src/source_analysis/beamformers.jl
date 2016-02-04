@@ -120,6 +120,7 @@ function beamformer_lcmv{A <: AbstractFloat}(C::Array{Complex{A}, 2}, Q::Array{C
         S = svdfact(real(C)).S[1]
         C = C + regularisation * S * eye(C)
         Q = Q + regularisation * S * eye(Q)
+        Logging.debug("Regularised matrices with lambda = $(S * regularisation)")
     end
 
     if subspace > 0
