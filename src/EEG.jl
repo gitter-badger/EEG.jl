@@ -115,7 +115,7 @@ export # Helper functions
        find_location,
        project,
        euclidean,
-       cross_power_spectral_density,
+       cross_spectral_density,
        beamformer_lcmv_cpsd,
        # Plotting
        plot,
