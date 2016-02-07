@@ -147,33 +147,7 @@ function beamformer_lcmv{A <: AbstractFloat}(C::Array{Complex{A}, 2}, Q::Array{C
 
     for l = 1:L
 
-        # Extract leadfield for location
-        H_l = squeeze(H[l,:,:], 1)'
-
-        # Coherent source suppression
-        if bilateral > 0
-
-            # Determine locations within radius of bilateral source
-            to_supress = falses(size(x))
-            for loc in 1:L
-                if euclidean([-x[l], y[l], z[l]], [x[loc], y[loc], z[loc]]) < bilateral
-                    to_supress[loc] = true
-                end
-            end
-            Ls = H[to_supress, :, :]
-            Ls = reshape(permutedims(Ls, [3, 2, 1]), N, size(Ls, 1) * 3)
-
-            # Append bilateral sources to leadfield Dalal et al 2006
-            if reduce_dim
-                # Append singular values Dalal eqn 13
-                # Should we take a constant number of vectors or adaptive? Chosen a constant of 6 for now
-                H_l = hcat(H_l, svdfact(Ls).U[:, 1:6])
-            else
-                # Append all points Dalal eqn 12
-                # Will be highly singular and computationally expensive
-                H_l = hcat(H_l, Ls)
-            end
-        end
+        H_l = calculate_specific_leadfield(H, l, x, y, z, reduce_dim, bilateral)
 
         # Apply subspace to leadfield in addition to covariance matrix
         if subspace > 0
@@ -269,8 +243,6 @@ function retain_svd{T <: AbstractFloat}(A::Array{T, 2}, k::T=0.9)
 end
 
 
-
-
 ###############################
 #
 # Average the epochs
@@ -289,4 +261,47 @@ function reduce_epochs{T <: AbstractFloat}(a::Array{T, 3}, new_num_epochs::Int=3
     else
         return a
     end
+end
+
+
+###############################
+#
+# Calculate leadfield location
+#
+###############################
+
+function calculate_specific_leadfield{A <: AbstractFloat}(H::Array{A, 3}, l::Int, x::Vector{A}, y::Vector{A}, z::Vector{A}, reduce_dim::Bool, bilateral::Real; keep_vecs::Int=6)
+
+    L = size(H, 1)   # Locations
+    N = size(H, 3)   # Sensors
+
+    # Extract leadfield for location
+    H_l = squeeze(H[l,:,:], 1)'
+
+    # Coherent source suppression
+    if bilateral > 0
+
+        # Determine locations within radius of bilateral source
+        to_supress = falses(size(x))
+        for loc in 1:L
+            if euclidean([-x[l], y[l], z[l]], [x[loc], y[loc], z[loc]]) < bilateral
+                to_supress[loc] = true
+            end
+        end
+        Ls = H[to_supress, :, :]
+        Ls = reshape(permutedims(Ls, [3, 2, 1]), N, size(Ls, 1) * 3)
+
+        # Append bilateral sources to leadfield Dalal et al 2006
+        if reduce_dim
+            # Append singular values Dalal eqn 13
+            # Should we take a constant number of vectors or adaptive? Chosen a constant of 6 for now
+            H_l = hcat(H_l, svdfact(Ls).U[:, 1:keep_vecs])
+        else
+            # Append all points Dalal eqn 12
+            # Will be highly singular and computationally expensive
+            H_l = hcat(H_l, Ls)
+        end
+    end
+
+    return H_l
 end
