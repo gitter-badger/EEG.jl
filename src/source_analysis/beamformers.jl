@@ -119,8 +119,10 @@ function beamformer_lcmv{A <: AbstractFloat}(C::Array{Complex{A}, 2}, Q::Array{C
     if regularisation > 0
         S = svdfact(real(C)).S[1]
         C = C + regularisation * S * eye(C)
+        Logging.debug("Regularised signal matrix with lambda = $(S * regularisation)")
+        S = svdfact(real(Q)).S[1]
         Q = Q + regularisation * S * eye(Q)
-        Logging.debug("Regularised matrices with lambda = $(S * regularisation)")
+        Logging.debug("Regularised noise matrix with lambda = $(S * regularisation)")
     end
 
     if subspace > 0
