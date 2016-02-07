@@ -138,6 +138,9 @@ function beamformer_lcmv{A <: AbstractFloat}(C::Array{Complex{A}, 2}, Q::Array{C
         Q = ss * Q * ss'
 
         Logging.debug("Subspace projection calculated")
+
+    else
+        ss = eye(real(C))
     end
 
     # Compute inverse outside loop
@@ -149,12 +152,7 @@ function beamformer_lcmv{A <: AbstractFloat}(C::Array{Complex{A}, 2}, Q::Array{C
 
     for l = 1:L
 
-        H_l = calculate_specific_leadfield(H, l, x, y, z, reduce_dim, bilateral)
-
-        # Apply subspace to leadfield in addition to covariance matrix
-        if subspace > 0
-            H_l = ss * H_l
-        end
+        H_l = calculate_specific_leadfield(H, l, x, y, z, reduce_dim, bilateral, ss)
 
         Variance[l], Noise[l], NAI[l] = beamformer_lcmv(invC, invQ, H_l)
 
@@ -256,7 +254,7 @@ function reduce_epochs{T <: AbstractFloat}(a::Array{T, 3}, new_num_epochs::Int=3
         ep_per_av = floor(size(a, 2) / new_num_epochs)
         new = zeros(size(a, 1), new_num_epochs, size(a, 3))
         for i in 1:new_num_epochs-1
-            new[:, i, :] = mean(a[:, 1+((i-1)*4):4+((i-1)*4), :], 2) 
+            new[:, i, :] = mean(a[:, 1+((i-1)*4):4+((i-1)*4), :], 2)
         end
         new[:, new_num_epochs, :] = mean(a[:, 1+((new_num_epochs-1)*4):end, :], 2)
         return new
@@ -272,9 +270,8 @@ end
 #
 ###############################
 
-function calculate_specific_leadfield{A <: AbstractFloat}(H::Array{A, 3}, l::Int, x::Vector{A}, y::Vector{A}, z::Vector{A}, reduce_dim::Bool, bilateral::Real; keep_vecs::Int=6)
+function calculate_specific_leadfield{A <: AbstractFloat}(H::Array{A, 3}, l::Int, x::Vector{A}, y::Vector{A}, z::Vector{A}, reduce_dim::Bool, bilateral::Real, ss::Array{A, 2}; keep_vecs::Int=6)
 
-    L = size(H, 1)   # Locations
     N = size(H, 3)   # Sensors
 
     # Extract leadfield for location
@@ -285,7 +282,7 @@ function calculate_specific_leadfield{A <: AbstractFloat}(H::Array{A, 3}, l::Int
 
         # Determine locations within radius of bilateral source
         to_supress = falses(size(x))
-        for loc in 1:L
+        for loc in 1:size(H, 1)
             if euclidean([-x[l], y[l], z[l]], [x[loc], y[loc], z[loc]]) < bilateral
                 to_supress[loc] = true
             end
@@ -304,6 +301,9 @@ function calculate_specific_leadfield{A <: AbstractFloat}(H::Array{A, 3}, l::Int
             H_l = hcat(H_l, Ls)
         end
     end
+
+    # Apply subspace to leadfield in addition to covariance matrix
+    H_l = ss * H_l
 
     return H_l
 end

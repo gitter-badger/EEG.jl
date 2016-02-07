@@ -25,5 +25,9 @@ H = rand(125, 3, 6)
 L = Leadfield(H, x, y, z, a.channel_names)
 
 v = beamformer_lcmv(a, b, L)
+v = beamformer_lcmv(a, b, L, bilateral = 0, reduce_dim = false, subspace = 0.0, regularisation = 0.0)
+v = beamformer_lcmv(a, b, L, bilateral = 0, reduce_dim = false, subspace = 0.0, regularisation = 0.001)
+v = beamformer_lcmv(a, b, L, bilateral = 0, reduce_dim = false, subspace = 0.9, regularisation = 0.001)
+v = beamformer_lcmv(a, b, L, bilateral = 10, reduce_dim = true,  subspace = 0.99, regularisation = 0.001)
 
 show(v)
