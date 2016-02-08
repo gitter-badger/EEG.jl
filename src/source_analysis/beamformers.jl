@@ -152,7 +152,7 @@ function beamformer_lcmv{A <: AbstractFloat}(C::Array{Complex{A}, 2}, Q::Array{C
 
     for l = 1:L
 
-        H_l = calculate_specific_leadfield(H, l, x, y, z, reduce_dim, bilateral, ss)
+        H_l = calculate_specific_leadfield(H, l, x, y, z, reduce_dim, bilateral, ss; kwargs...)
 
         Variance[l], Noise[l], NAI[l] = beamformer_lcmv(invC, invQ, H_l)
 
@@ -270,7 +270,7 @@ end
 #
 ###############################
 
-function calculate_specific_leadfield{A <: AbstractFloat}(H::Array{A, 3}, l::Int, x::Vector{A}, y::Vector{A}, z::Vector{A}, reduce_dim::Bool, bilateral::Real, ss::Array{A, 2}; keep_vecs::Int=6)
+function calculate_specific_leadfield{A <: AbstractFloat}(H::Array{A, 3}, l::Int, x::Vector{A}, y::Vector{A}, z::Vector{A}, reduce_dim::Bool, bilateral::Real, ss::Array{A, 2}; keep_vecs::Int=6, kwargs...)
 
     N = size(H, 3)   # Sensors
 
