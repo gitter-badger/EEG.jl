@@ -254,9 +254,9 @@ function reduce_epochs{T <: AbstractFloat}(a::Array{T, 3}, new_num_epochs::Int=3
         ep_per_av = floor(size(a, 2) / new_num_epochs)
         new = zeros(size(a, 1), new_num_epochs, size(a, 3))
         for i in 1:new_num_epochs-1
-            new[:, i, :] = mean(a[:, 1+((i-1)*4):4+((i-1)*4), :], 2)
+            new[:, i, :] = mean(a[:, 1+((i-1)*ep_per_av):ep_per_av+((i-1)*ep_per_av), :], 2)
         end
-        new[:, new_num_epochs, :] = mean(a[:, 1+((new_num_epochs-1)*4):end, :], 2)
+        new[:, new_num_epochs, :] = mean(a[:, 1+((new_num_epochs-1)*ep_per_av):end, :], 2)
         return new
     else
         return a
