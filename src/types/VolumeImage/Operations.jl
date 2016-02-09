@@ -182,3 +182,43 @@ function dimensions_equal(vi1::VolumeImage, vi2::VolumeImage; x::Bool=true, y::B
     end
 end
 
+
+
+###############################
+#
+# Correct midline for bilateral
+#
+###############################
+
+
+"""
+Correct midline estimates from bilateral beamformer
+
+Region supression for bilateral beamformers supresses itself along the midline. This causes innacurate estimates
+around 0 on the x axis. To compensate for this take the average of adjacent valid locations.
+
+#### Input
+
+* vi: Volume image
+* pm: Locations plus or minus the midline in mm to correct
+"""
+function correct_midline(v::VolumeImage; pm::Real=0.005, units=Meter)
+
+    Logging.info("Correcting volume image midline errors caused by bilateral region supression")
+    Logging.debug("Supressing region ± $(pm * units)")
+
+    x = AbstractFloat[xi / (1 * units) for xi in v.x]
+    midline_idxs = abs(x)
+    midline_idxs = midline_idxs .<= pm
+
+    valid_idxs = falses(size(midline_idxs))
+    valid_idxs[minimum(find(midline_idxs))-1] = true
+    valid_idxs[maximum(find(midline_idxs))+1] = true
+
+    new_val = mean(v.data[valid_idxs, :, :], 1)
+    for i in find(midline_idxs)
+        v.data[i, :, :] = new_val
+    end
+
+    return v
+end
