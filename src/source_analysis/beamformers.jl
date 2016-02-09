@@ -42,7 +42,9 @@ function beamformer_lcmv(s::SSR, l::Leadfield; foi::Real=modulationrate(s), fs::
 
     Logging.debug("Covariance matrices calculated and of size $(size(Q))")
 
-    beamformer_lcmv(C, Q, l.L, l.x, l.y, l.z, bilateral; kwargs...)
+    V, N, NAI = beamformer_lcmv(C, Q, l.L, l.x, l.y, l.z, bilateral; kwargs...)
+
+    VolumeImage(vec(NAI), "NAI", l.x, l.y, l.z, [1.0], "LCMV", Dict(), "Talairach")
 end
 
 
