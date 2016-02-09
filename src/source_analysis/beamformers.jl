@@ -21,6 +21,32 @@ function beamformer_lcmv(s::SSR, n::SSR, l::Leadfield; foi::Real=modulationrate(
     VolumeImage(vec(NAI), "NAI", l.x, l.y, l.z, [1.0], "LCMV", Dict(), "Talairach")
 end
 
+
+function beamformer_lcmv(s::SSR, l::Leadfield; foi::Real=modulationrate(s), fs::Real=samplingrate(s), n_epochs::Int=0, freq_pm::Real = 1.0, noise_delta::Real=5.0, bilateral::Real = 15, kwargs...)
+
+    if !haskey(s.processing, "epochs")
+        s = extract_epochs(s)
+    end
+
+    if n_epochs > 0
+        s.processing["epochs"] = reduce_epochs(s.processing["epochs"], n_epochs)
+    end
+
+    l = match_leadfield(l, s)
+
+    C = cross_spectral_density(s.processing["epochs"], foi - freq_pm, foi + freq_pm, fs)
+    Q = cross_spectral_density(s.processing["epochs"], foi - freq_pm + noise_delta, foi + freq_pm + noise_delta, fs)
+
+    @assert size(C) == size(Q)
+    @assert C != Q
+
+    Logging.debug("Covariance matrices calculated and of size $(size(Q))")
+
+    beamformer_lcmv(C, Q, l.L, l.x, l.y, l.z, bilateral; kwargs...)
+end
+
+
+
 """
 Linearly constrained minimum variance (LCMV) beamformer for epoched data
 
