@@ -22,7 +22,7 @@ function beamformer_lcmv(s::SSR, n::SSR, l::Leadfield; foi::Real=modulationrate(
 end
 
 
-function beamformer_lcmv(s::SSR, l::Leadfield; foi::Real=modulationrate(s), fs::Real=samplingrate(s), n_epochs::Int=0, freq_pm::Real = 1.0, noise_delta::Real=5.0, bilateral::Real = 15, kwargs...)
+function beamformer_lcmv(s::SSR, l::Leadfield; foi::Real=modulationrate(s), fs::Real=samplingrate(s), n_epochs::Int=0, freq_pm::Real = 0.5, noise_delta::Real=4.0, noise_pm::Real=2.0, bilateral::Real = 15, kwargs...)
 
     if !haskey(s.processing, "epochs")
         s = extract_epochs(s)
@@ -35,7 +35,11 @@ function beamformer_lcmv(s::SSR, l::Leadfield; foi::Real=modulationrate(s), fs::
     l = match_leadfield(l, s)
 
     C = cross_spectral_density(s.processing["epochs"], foi - freq_pm, foi + freq_pm, fs)
-    Q = cross_spectral_density(s.processing["epochs"], foi - freq_pm + noise_delta, foi + freq_pm + noise_delta, fs)
+    # TODO should probably return mne vector, remove foi then average
+    Q1 = cross_spectral_density(s.processing["epochs"], foi - noise_pm + noise_delta, foi + noise_pm + noise_delta, fs)
+    Q2 = cross_spectral_density(s.processing["epochs"], foi - noise_pm - noise_delta, foi + noise_pm - noise_delta, fs)
+    Q = Q1 .+ Q2
+    Q = Q ./ 2
 
     @assert size(C) == size(Q)
     @assert C != Q
