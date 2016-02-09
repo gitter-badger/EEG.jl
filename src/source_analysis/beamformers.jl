@@ -22,7 +22,7 @@ function beamformer_lcmv(s::SSR, n::SSR, l::Leadfield; foi::Real=modulationrate(
 end
 
 
-function beamformer_lcmv(s::SSR, l::Leadfield; foi::Real=modulationrate(s), fs::Real=samplingrate(s), n_epochs::Int=0, freq_pm::Real = 0.5, noise_delta::Real=4.0, noise_pm::Real=2.0, bilateral::Real = 15, kwargs...)
+function beamformer_lcmv(s::SSR, l::Leadfield; foi::Real=modulationrate(s), fs::Real=samplingrate(s), n_epochs::Int=0, freq_pm::Real = 0.5, noise_delta::Real=4.0, bilateral::Real = 15, kwargs...)
 
     if !haskey(s.processing, "epochs")
         s = extract_epochs(s)
@@ -34,8 +34,8 @@ function beamformer_lcmv(s::SSR, l::Leadfield; foi::Real=modulationrate(s), fs::
 
     l = match_leadfield(l, s)
 
-    C = cross_spectral_density(s.processing["epochs"], foi - freq_pm, foi + freq_pm, fs)
-    Q = cross_spectral_density(s.processing["epochs"], foi - noise_delta, foi + noise_delta, fs, ignore = foi)
+    C = cross_spectral_density(s.processing["epochs"], foi - freq_pm, foi + freq_pm, fs; kwargs...)
+    Q = cross_spectral_density(s.processing["epochs"], foi - noise_delta, foi + noise_delta, fs, ignore = foi; kwargs...)
 
     @assert size(C) == size(Q)
     @assert C != Q
@@ -228,7 +228,7 @@ Currently uses MNE python library.
 Will change to Synchrony.jl when its stabilised.
 
 """
-function cross_spectral_density{T <: AbstractFloat}(epochs::Array{T, 3}, fmin::Real, fmax::Real, fs::Real; fsum::Bool=false, ignore::Real=Inf, ignore_pm::Real=1.0)
+function cross_spectral_density{T <: AbstractFloat}(epochs::Array{T, 3}, fmin::Real, fmax::Real, fs::Real; fsum::Bool=false, ignore::Real=Inf, ignore_pm::Real=1.0, kwargs...)
 
     @pyimport mne as mne
     @pyimport mne.time_frequency as tf
@@ -247,6 +247,7 @@ function cross_spectral_density{T <: AbstractFloat}(epochs::Array{T, 3}, fmin::R
 
     keep_idx = find(abs(AbstractFloat[c[:frequencies][1] for c in csd] - ignore) .> ignore_pm)
     csd = csd[keep_idx];
+    Logging.critical("Averaging CSD over frequencies $(AbstractFloat[c[:frequencies][1] for c in csd])")
     a = zeros(csd[1][:data])
     for i in 1:length(csd)
         a = a .+ csd[i][:data]
