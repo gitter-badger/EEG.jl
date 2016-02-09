@@ -16,6 +16,7 @@ using Logging,  # For user feedback
       Distributions,
       Winston,
       Gadfly,
+      Plots,
       Images,
       BDF,
       MAT,
