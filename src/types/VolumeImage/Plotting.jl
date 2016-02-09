@@ -33,7 +33,7 @@ end
 
 
 function plot_src{A <: AbstractFloat, S <: AbstractString}(d::Vector{A}, x::Vector{A}, y::Vector{A}, z::Vector{A};
-                  title::S="", threshold::Real=-Inf, min_val::Real=Inf, max_val::Real=-Inf, kwargs...)
+                  title::S="", threshold::Real=-Inf, min_val::Real=Inf, max_val::Real=-Inf, elp::AbstractString="", kwargs...)
 
     d = copy(vec(d))
     x = copy(vec(x))
@@ -61,7 +61,12 @@ function plot_src{A <: AbstractFloat, S <: AbstractString}(d::Vector{A}, x::Vect
 
     maxsize = 7
     scaleval = maxsize / maximum(exp(d*2.0))
-    e = read_elp("/Users/rluke/.julia/v0.4/Private/test/data/Standard-10-10-Cap81.elp")
+
+    plot_labels = false
+    if elp != ""
+        e = read_elp("/Users/rluke/.julia/v0.4/Private/test/data/Standard-10-10-Cap81.elp")
+        plot_labels = true
+    end
 
     subplot(n = 3, nr = 1, xlabel=["Left - Right (mm)" "Posterior - Anterior (mm)" "Left - Right (mm)"], ylabel=["Inferior - Superior (mm)" "Inferior - Superior (mm)" "Posterior - Anterior (mm)"], xlims=[(-100, 100) (-120, 90) (-100, 100)], ylims=[(-120, 90) (-70, 100) (-70, 100)], title=[ "" title ""])
 
@@ -90,10 +95,12 @@ function plot_src{A <: AbstractFloat, S <: AbstractString}(d::Vector{A}, x::Vect
         cb = PyPlot.colorbar(p.plts[1].seriesargs[1][:serieshandle])
         cb[:set_label]("Neural Activity Index")
     end
-    plotlist = ["Fpz", "Fp2", "AF8", "F8", "FT8", "T8", "TP8", "P10", "PO8", "O2", "Oz", "O1", "PO7", "P9", "TP7", "T7", "FT7", "F7", "AF7", "Fp1"]
-    for elec in 1:length(e.x)
-        if findfirst(plotlist, e.label[elec]) > 0
-            annotate!(p.plts[1], e.x[elec]-5, 1.1*e.y[elec]-2, e.label[elec])
+    if plot_labels
+        plotlist = ["Fpz", "Fp2", "AF8", "F8", "FT8", "T8", "TP8", "P10", "PO8", "O2", "Oz", "O1", "PO7", "P9", "TP7", "T7", "FT7", "F7", "AF7", "Fp1"]
+        for elec in 1:length(e.x)
+            if findfirst(plotlist, e.label[elec]) > 0
+                annotate!(p.plts[1], e.x[elec]-5, 1.1*e.y[elec]-2, e.label[elec])
+            end
         end
     end
 
@@ -118,10 +125,12 @@ function plot_src{A <: AbstractFloat, S <: AbstractString}(d::Vector{A}, x::Vect
         end
     end
     p = subplot!(p, x_tmp, y_tmp, zcolor=c_tmp, c=cols, ms=s_tmp, legend=false, l=:scatter)
-    plotlist = ["Iz", "Oz", "POz", "Pz", "CPz", "Cz", "FCz", "Fz", "AFz", "Fpz"]
-    for elec in 1:length(e.x)
-        if findfirst(plotlist, e.label[elec]) > 0
-            annotate!(p.plts[2], e.y[elec]-5, e.z[elec], e.label[elec])
+    if plot_labels
+        plotlist = ["Iz", "Oz", "POz", "Pz", "CPz", "Cz", "FCz", "Fz", "AFz", "Fpz"]
+        for elec in 1:length(e.x)
+            if findfirst(plotlist, e.label[elec]) > 0
+                annotate!(p.plts[2], e.y[elec]-5, e.z[elec], e.label[elec])
+            end
         end
     end
 
@@ -146,10 +155,12 @@ function plot_src{A <: AbstractFloat, S <: AbstractString}(d::Vector{A}, x::Vect
         end
     end
     p = subplot!(p, x_tmp, y_tmp, zcolor=c_tmp, c=cols, ms=s_tmp, legend=false, l=:scatter)
-    plotlist = ["T7", "C5", "C3", "C1", "Cz", "C2", "C4", "C6", "T8"]
-    for elec in 1:length(e.x)
-        if findfirst(plotlist, e.label[elec]) > 0
-            annotate!(p.plts[3], e.x[elec]-5, e.z[elec], e.label[elec])
+    if plot_labels
+        plotlist = ["T7", "C5", "C3", "C1", "Cz", "C2", "C4", "C6", "T8"]
+        for elec in 1:length(e.x)
+            if findfirst(plotlist, e.label[elec]) > 0
+                annotate!(p.plts[3], e.x[elec]-5, e.z[elec], e.label[elec])
+            end
         end
     end
 
