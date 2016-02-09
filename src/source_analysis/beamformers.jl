@@ -35,11 +35,7 @@ function beamformer_lcmv(s::SSR, l::Leadfield; foi::Real=modulationrate(s), fs::
     l = match_leadfield(l, s)
 
     C = cross_spectral_density(s.processing["epochs"], foi - freq_pm, foi + freq_pm, fs)
-    # TODO should probably return mne vector, remove foi then average
-    Q1 = cross_spectral_density(s.processing["epochs"], foi - noise_pm + noise_delta, foi + noise_pm + noise_delta, fs)
-    Q2 = cross_spectral_density(s.processing["epochs"], foi - noise_pm - noise_delta, foi + noise_pm - noise_delta, fs)
-    Q = Q1 .+ Q2
-    Q = Q ./ 2
+    Q = cross_spectral_density(s.processing["epochs"], foi - noise_delta, foi + noise_delta, fs, ignore = foi)
 
     @assert size(C) == size(Q)
     @assert C != Q
@@ -95,7 +91,7 @@ Biomedical Engineering, IEEE Transactions on, 53(7):1357–1363, 2006.
 function beamformer_lcmv{A <: AbstractFloat}(x::Array{A, 3}, n::Array{A, 3}, H::Array{A, 3},
                          x_loc::Vector{A}, y_loc::Vector{A}, z_loc::Vector{A},
                          fs::Real = 8192, foi::Real = 40.0;
-                         freq_pm::Real = 1.0, bilateral::Real = 15, kwargs...)
+                         freq_pm::Real = 0.5, bilateral::Real = 15, kwargs...)
 
     Logging.debug("Starting LCMV beamforming on epoch data of size $(size(x, 1)) x $(size(x, 2)) x $(size(x, 3)) and $(size(n, 1)) x $(size(n, 2)) x $(size(n, 3))")
 
@@ -232,7 +228,7 @@ Currently uses MNE python library.
 Will change to Synchrony.jl when its stabilised.
 
 """
-function cross_spectral_density{T <: AbstractFloat}(epochs::Array{T, 3}, fmin::Real, fmax::Real, fs::Real)
+function cross_spectral_density{T <: AbstractFloat}(epochs::Array{T, 3}, fmin::Real, fmax::Real, fs::Real; fsum::Bool=false, ignore::Real=Inf, ignore_pm::Real=1.0)
 
     @pyimport mne as mne
     @pyimport mne.time_frequency as tf
@@ -247,8 +243,17 @@ function cross_spectral_density{T <: AbstractFloat}(epochs::Array{T, 3}, fmin::R
     # Run MNE processing
     i = pycall(mne.create_info, PyObject, ch_names = vec(names), ch_types = vec(repmat(["eeg"], size(epochs, 2))), sfreq = fs)
     epochs = mne.EpochsArray(epochs, i, events, 0.0, verbose = false)
-    csd = tf.compute_epochs_csd(epochs, fmin = fmin, fmax = fmax, verbose = false, fsum = true)
-    csd = csd[:data]
+    csd = tf.compute_epochs_csd(epochs, fmin = fmin, fmax = fmax, verbose = false, fsum = fsum)
+
+    keep_idx = find(abs(AbstractFloat[c[:frequencies][1] for c in csd] - ignore) .> ignore_pm)
+    csd = csd[keep_idx];
+    a = zeros(csd[1][:data])
+    for i in 1:length(csd)
+        a = a .+ csd[i][:data]
+    end
+    a = a ./ length(csd)
+
+    return a
 end
 
 
